@@ -1,5 +1,7 @@
 # Working sessions calendar
 
+This folder holds data to modify the calendar at https://calendar.graphql.org
+
 Every event of the working sessions calendar lives in this folder as a small YAML file.
 When a change to this folder is merged to `main`, a GitHub Action updates the shared Google Calendar automatically. **Never edit the Google Calendar by hand**: manual changes to synced events are overwritten on the next sync.
 
