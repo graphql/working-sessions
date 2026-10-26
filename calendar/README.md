@@ -27,19 +27,21 @@ title: GraphQL Working Session
 location: https://zoom.us/j/0000000000
 description: Agenda and notes for this session.
 link: https://github.com/graphql/working-sessions
+# endDay: 2026-11-06   # optional, for events spanning several days
 ```
 
 | Property      | Description                                                              |
 | ------------- | ------------------------------------------------------------------------ |
 | `startTime`   | Start time, 24h `HH:MM`, in `timeZone`. **Put it in quotes.**            |
-| `endTime`     | End time, 24h `HH:MM`, in `timeZone`. Must be after `startTime`.         |
+| `endTime`     | End time, 24h `HH:MM`, in `timeZone`, on the last day of the event. Must be after `startTime` unless `endDay` is set. |
 | `timeZone`    | [IANA time zone name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. `America/New_York`, `Europe/Paris`, `UTC`. |
+| `endDay`      | *Optional.* Last day of a multi-day event, as `YYYY-MM-DD`. Defaults to the day in the file name. The event runs from `startTime` on the first day to `endTime` on `endDay`. |
 | `title`       | Event title.                                                             |
 | `location`    | Free text: a video call URL, an address, etc.                            |
 | `description` | Free text description.                                                   |
 | `link`        | `http(s)` URL with more information (agenda, notes, ...). It is also appended to the calendar event description. |
 
-All properties are required and no other property is allowed.
+All properties are required except `endDay`, and no other property is allowed.
 
 ## Adding an event
 

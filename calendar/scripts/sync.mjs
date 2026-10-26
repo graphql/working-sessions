@@ -14,6 +14,7 @@ import yaml from 'js-yaml'
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../../..')
 const calendarDir = join(repoRoot, 'calendar')
+const OPTIONAL_FIELDS = ['endDay']
 const FIELDS = ['startTime', 'endTime', 'timeZone', 'title', 'location', 'description', 'link']
 
 function listEventFiles() {
@@ -32,12 +33,19 @@ function listEventFiles() {
 // calendar/<YYYY>/<MM>-<DD>[-<slug>].yaml. Several events can share a day if their slugs differ.
 const PATH_RE = /^calendar\/(\d{4})\/(\d{2})-(\d{2})(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?\.yaml$/
 
+function isValidDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  if (!m) return false
+  const [, y, mo, d] = m
+  const dt = new Date(Date.UTC(+y, +mo - 1, +d))
+  return dt.getUTCFullYear() === +y && dt.getUTCMonth() === +mo - 1 && dt.getUTCDate() === +d
+}
+
 function parsePath(path) {
   const m = PATH_RE.exec(path)
   if (!m) return { error: 'path must look like calendar/<YYYY>/<MM>-<DD>.yaml or calendar/<YYYY>/<MM>-<DD>-<slug>.yaml (slug: lowercase letters, digits and dashes)' }
   const [, y, mo, d, slug = ''] = m
-  const dt = new Date(Date.UTC(+y, +mo - 1, +d))
-  if (dt.getUTCFullYear() !== +y || dt.getUTCMonth() !== +mo - 1 || dt.getUTCDate() !== +d) {
+  if (!isValidDate(`${y}-${mo}-${d}`)) {
     return { error: `${y}-${mo}-${d} is not a valid date` }
   }
   return { date: `${y}-${mo}-${d}`, slug }
@@ -60,8 +68,10 @@ function parseEvent(file) {
   }
 
   for (const k of Object.keys(data)) {
-    if (!FIELDS.includes(k)) errors.push(`unknown property "${k}"`)
+    if (!FIELDS.includes(k) && !OPTIONAL_FIELDS.includes(k)) errors.push(`unknown property "${k}"`)
   }
+  // An unquoted 2026-11-06 is parsed as a Date by YAML
+  if (data.endDay instanceof Date) data.endDay = data.endDay.toISOString().slice(0, 10)
   for (const k of FIELDS) {
     if (typeof data[k] !== 'string' || data[k].trim() === '') {
       errors.push(`"${k}" is required and must be a non-empty string (quote times, e.g. "14:00")`)
@@ -73,8 +83,18 @@ function parseEvent(file) {
   for (const k of ['startTime', 'endTime']) {
     if (!time.test(data[k])) errors.push(`"${k}" must be HH:MM in 24h format, got "${data[k]}"`)
   }
-  if (time.test(data.startTime) && time.test(data.endTime) && data.endTime <= data.startTime) {
-    errors.push('"endTime" must be after "startTime" (events cannot span midnight)')
+  let endDay = date
+  if (data.endDay !== undefined) {
+    if (typeof data.endDay !== 'string' || !isValidDate(data.endDay)) {
+      errors.push(`"endDay" must be a valid YYYY-MM-DD date, got "${data.endDay}"`)
+    } else if (data.endDay < date) {
+      errors.push(`"endDay" (${data.endDay}) cannot be before the day of the event (${date})`)
+    } else {
+      endDay = data.endDay
+    }
+  }
+  if (endDay === date && time.test(data.startTime) && time.test(data.endTime) && data.endTime <= data.startTime) {
+    errors.push('"endTime" must be after "startTime" (use "endDay" for events that end on a later day)')
   }
   try {
     new Intl.DateTimeFormat('en', { timeZone: data.timeZone })
@@ -89,7 +109,7 @@ function parseEvent(file) {
   }
   if (errors.length) return { path, errors }
 
-  return { path, errors, date, slug, ...data }
+  return { path, errors, ...data, date, slug, endDay }
 }
 
 // Google event IDs: 5-1024 chars of a-v and 0-9. A hex digest fits.
@@ -104,7 +124,7 @@ function toGoogleEvent(e) {
     description: `${e.description.trim()}\n\n${e.link}`,
     source: { title: 'GraphQL Working Sessions', url: e.link },
     start: { dateTime: `${e.date}T${e.startTime}:00`, timeZone: e.timeZone },
-    end: { dateTime: `${e.date}T${e.endTime}:00`, timeZone: e.timeZone },
+    end: { dateTime: `${e.endDay}T${e.endTime}:00`, timeZone: e.timeZone },
   }
 }
 
