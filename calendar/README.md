@@ -3,7 +3,8 @@
 This folder holds data to modify the calendar at https://calendar.graphql.org
 
 Every event of the working sessions calendar lives in this folder as a small YAML file.
-When a change to this folder is merged to `main`, a GitHub Action updates the shared Google Calendar automatically. **Never edit the Google Calendar by hand**: manual changes to synced events are overwritten on the next sync.
+
+When a change to this folder is merged to `main`, a GitHub Action updates the shared Google Calendar automatically. Never edit those events by hand in Google calendar: manual changes to synced events are overwritten on the next sync. It's OK to create other events manually in Google calendar but those events won't be handled by this repository.
 
 ## One file per event
 
