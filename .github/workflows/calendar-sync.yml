@@ -1,0 +1,39 @@
+name: Sync Google Calendar
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'calendar/**'
+
+# Never run two syncs at once
+concurrency:
+  group: calendar-sync
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the push's previous commit is needed to diff against
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+        working-directory: calendar/scripts
+      - name: Sync
+        run: |
+          # Only sync what changed since the previous tip of main.
+          # On the very first push there is no previous commit: diff against the empty tree.
+          if [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            export BASE_SHA=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+          fi
+          node calendar/scripts/sync.mjs
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
