@@ -24,8 +24,8 @@ The slug is not shown in the calendar, but it identifies the event: **renaming a
 startTime: "16:00"
 endTime: "17:00"
 timeZone: Europe/Paris
-type: working group
-# hostedBy: GraphQL Foundation   # optional
+type: meetup
+# hostedBy: FOST PARIS   # optional, for non-foundation events.
 title: GraphQL Working Session
 location: https://zoom.us/j/0000000000
 description: Agenda and notes for this session.
