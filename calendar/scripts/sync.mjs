@@ -14,8 +14,9 @@ import yaml from 'js-yaml'
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../../..')
 const calendarDir = join(repoRoot, 'calendar')
-const OPTIONAL_FIELDS = ['endDay']
-const FIELDS = ['startTime', 'endTime', 'timeZone', 'title', 'location', 'description', 'link']
+const OPTIONAL_FIELDS = ['endDay', 'hostedBy']
+const FIELDS = ['startTime', 'endTime', 'timeZone', 'type', 'title', 'location', 'description', 'link']
+const TYPES = ['conference', 'working group', 'workshop', 'meetup', 'meeting']
 
 function listEventFiles() {
   const files = []
@@ -79,6 +80,12 @@ function parseEvent(file) {
   }
   if (errors.length) return { path, errors }
 
+  if (!TYPES.includes(data.type)) {
+    errors.push(`"type" must be one of ${TYPES.map((t) => `"${t}"`).join(', ')}, got "${data.type}"`)
+  }
+  if (data.hostedBy !== undefined && (typeof data.hostedBy !== 'string' || data.hostedBy.trim() === '')) {
+    errors.push('"hostedBy" must be a non-empty string when set')
+  }
   const time = /^([01]\d|2[0-3]):[0-5]\d$/
   for (const k of ['startTime', 'endTime']) {
     if (!time.test(data[k])) errors.push(`"${k}" must be HH:MM in 24h format, got "${data[k]}"`)
@@ -117,11 +124,13 @@ function parseEvent(file) {
 const eventId = (date, slug) => 'gql' + createHash('sha1').update(`${date}/${slug}`).digest('hex')
 
 function toGoogleEvent(e) {
+  const header = [`type: ${e.type}`]
+  if (e.hostedBy !== undefined) header.push(`hostedBy: ${e.hostedBy.trim()}`)
   return {
     id: eventId(e.date, e.slug),
     summary: e.title.trim(),
     location: e.location.trim(),
-    description: `${e.description.trim()}\n\n${e.link}`,
+    description: `${header.join('\n')}\n\n${e.description.trim()}\n\n${e.link}`,
     source: { title: 'GraphQL Working Sessions', url: e.link },
     start: { dateTime: `${e.date}T${e.startTime}:00`, timeZone: e.timeZone },
     end: { dateTime: `${e.endDay}T${e.endTime}:00`, timeZone: e.timeZone },
