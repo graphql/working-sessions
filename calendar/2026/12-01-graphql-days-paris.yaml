@@ -2,7 +2,9 @@ startTime: "09:00"
 endDay: "2026-12-03"
 endTime: "18:00"
 timeZone: Europe/Paris
+type: conference
+hostedBy: FOST Paris
 title: GraphQL Days Paris
 location: CNIT La Defense, Paris
-description: Everything GraphQL
-link: https://graphql.org/dayt/2026/paris
+description: GraphQL Days Paris is a three-day community track hosted at FOST (Future of Software Technologies, think federation of conferences!), shared with AsyncAPI, OpenAPI and JSON Schema.
+link: https://graphql.org/day/2026/paris

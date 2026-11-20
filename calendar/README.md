@@ -24,6 +24,8 @@ The slug is not shown in the calendar, but it identifies the event: **renaming a
 startTime: "16:00"
 endTime: "17:00"
 timeZone: Europe/Paris
+type: working group
+# hostedBy: GraphQL Foundation   # optional
 title: GraphQL Working Session
 location: https://zoom.us/j/0000000000
 description: Agenda and notes for this session.
@@ -37,12 +39,25 @@ link: https://github.com/graphql/working-sessions
 | `endTime`     | End time, 24h `HH:MM`, in `timeZone`, on the last day of the event. Must be after `startTime` unless `endDay` is set. |
 | `timeZone`    | [IANA time zone name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. `America/New_York`, `Europe/Paris`, `UTC`. |
 | `endDay`      | *Optional.* Last day of a multi-day event, as `YYYY-MM-DD`. Defaults to the day in the file name. The event runs from `startTime` on the first day to `endTime` on `endDay`. |
+| `type`        | One of `conference`, `working group`, `workshop`, `meetup`, `meeting`.  |
+| `hostedBy`    | *Optional.* Free text: who hosts the event.                              |
 | `title`       | Event title.                                                             |
 | `location`    | Free text: a video call URL, an address, etc.                            |
 | `description` | Free text description.                                                   |
 | `link`        | `http(s)` URL with more information (agenda, notes, ...). It is also appended to the calendar event description. |
 
-All properties are required except `endDay`, and no other property is allowed.
+The calendar event description starts with the type and, if set, the host:
+
+```
+type: conference
+hostedBy: FOST Paris
+
+<description>
+
+<link>
+```
+
+All properties are required except `endDay` and `hostedBy`, and no other property is allowed.
 
 ## Adding an event
 
