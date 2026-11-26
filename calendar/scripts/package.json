@@ -1,9 +1,0 @@
-{
-  "name": "calendar-sync",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "googleapis": "^144.0.0",
-    "js-yaml": "^4.1.0"
-  }
-}
